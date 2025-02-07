@@ -1,6 +1,5 @@
 import time
-from transaction import Transaction
-from hash_algorithm import simple_hash
+from hash_algorithm import simple_hash 
 from merkle_tree import MerkleTree
 
 class Block:
@@ -13,11 +12,10 @@ class Block:
         self.hash = self.calculate_hash()
 
     def calculate_merkle_root(self):
-        """Меркле түбірін есептеу"""
-        merkle_tree = MerkleTree(self.transactions)
+        tx_hashes = [tx.tx_hash for tx in self.transactions]
+        merkle_tree = MerkleTree(tx_hashes)
         return merkle_tree.root
 
     def calculate_hash(self):
-        """Блоктың хэші"""
-        block_string = f"{self.index}{self.timestamp}{self.previous_hash}{self.merkle_root}"
-        return simple_hash(block_string)
+        data = f"{self.index}{self.timestamp}{self.previous_hash}{self.merkle_root}"
+        return simple_hash (data)

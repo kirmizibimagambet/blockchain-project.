@@ -1,26 +1,22 @@
-from hash_algorithm import simple_hash
+from hash_algorithm import simple_hash 
 
 class MerkleTree:
     def __init__(self, transactions):
         self.transactions = transactions
-        self.root = self.build_merkle_root()
+        self.root = self.build_tree(transactions)
 
-    def build_merkle_root(self):
-        """Меркле түбірін есептеу"""
-        if not self.transactions:
+    def build_tree(self, transactions):
+        if not transactions:
             return None
 
-        tx_hashes = [tx.tx_hash for tx in self.transactions]
+        if len(transactions) == 1:
+            return simple_hash (transactions[0])
 
-        while len(tx_hashes) > 1:
-            if len(tx_hashes) % 2 != 0:
-                tx_hashes.append(tx_hashes[-1])  # Егер тақ болса, соңғыны қайталаймыз
+        new_level = []
+        for i in range(0, len(transactions) - 1, 2):
+            new_level.append(simple_hash (transactions[i] + transactions[i + 1]))
 
-            new_level = []
-            for i in range(0, len(tx_hashes), 2):
-                combined_hash = simple_hash(tx_hashes[i] + tx_hashes[i+1])
-                new_level.append(combined_hash)
+        if len(transactions) % 2 == 1:
+            new_level.append(simple_hash (transactions[-1]))
 
-            tx_hashes = new_level
-
-        return tx_hashes[0]  # Соңғы түбірді қайтарамыз
+        return self.build_tree(new_level)

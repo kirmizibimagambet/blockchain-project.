@@ -1,50 +1,52 @@
 import tkinter as tk
 from blockchain import Blockchain
 from transaction import Transaction
+import rsa
 
-# Блокчейнді құру
-blockchain = Blockchain()
+class WalletApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Blockchain Wallet")
 
-# Тест үшін транзакциялар қосамыз
-transactions = [
-    Transaction("Alice", "Bob", 10, 1),
-    Transaction("Bob", "Charlie", 5, 1),
-    Transaction("Charlie", "Alice", 2, 1)
-]
+        self.blockchain = Blockchain()
+        self.public_key, self.private_key = rsa.newkeys(512)
+        self.address = self.public_key.save_pkcs1().decode()
 
-# Блокты блокчейнге қосу
-blockchain.add_block(transactions)
+        self.blockchain.utxo.initialize_balance(self.address)
 
-def display_blocks():
-    """GUI-де блоктарды көрсету функциясы"""
-    for widget in frame.winfo_children():
-        widget.destroy()
+        self.balance_label = tk.Label(root, text=f"Баланс: {self.blockchain.utxo.get_balance(self.address)}")
+        self.balance_label.pack()
 
-    for block in blockchain.chain:
-        text = (
-            f"Index: {block.index}\n"
-            f"Timestamp: {block.timestamp}\n"
-            f"Previous Hash: {block.previous_hash}\n"
-            f"Merkle Root: {block.merkle_root}\n"
-            f"Hash: {block.hash}\n"
-            f"Transactions:\n"
-        )
-        for tx in block.transactions:
-            text += f"  {tx.sender} -> {tx.receiver}: {tx.amount} (Fee: {tx.fee}) [{tx.tx_hash}]\n"
+        self.receiver_entry = tk.Entry(root)
+        self.receiver_entry.pack()
+        self.receiver_entry.insert(0, "Қабылдаушы адресі")
 
-        text += "\n"
+        self.amount_entry = tk.Entry(root)
+        self.amount_entry.pack()
+        self.amount_entry.insert(0, "Сома")
 
-        label = tk.Label(frame, text=text, anchor="w", justify="left", bg="lightgray", padx=5, pady=5)
-        label.pack(fill="x")
+        self.fee_entry = tk.Entry(root)
+        self.fee_entry.pack()
+        self.fee_entry.insert(0, "Транзакция комиссиясы")
 
-# GUI терезесін құру
+        self.send_button = tk.Button(root, text="Жіберу", command=self.create_transaction)
+        self.send_button.pack()
+
+    def create_transaction(self):
+        receiver = self.receiver_entry.get()
+        amount = float(self.amount_entry.get())
+        fee = float(self.fee_entry.get())
+
+        if self.blockchain.utxo.get_balance(self.address) < amount + fee:
+            print("Қателік: Баланс жеткіліксіз!")
+            return
+
+        tx = Transaction(self.address, receiver, amount, fee, self.private_key)
+        self.blockchain.add_block([tx])
+
+        self.balance_label.config(text=f"Баланс: {self.blockchain.utxo.get_balance(self.address)}")
+        print("Транзакция жіберілді!")
+
 root = tk.Tk()
-root.title("Blockchain Explorer")
-
-frame = tk.Frame(root)
-frame.pack(fill="both", expand=True, padx=10, pady=10)
-
-btn = tk.Button(root, text="Show Blockchain", command=display_blocks)
-btn.pack(pady=5)
-
+app = WalletApp(root)
 root.mainloop()
