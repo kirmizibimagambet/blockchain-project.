@@ -1,5 +1,5 @@
 import rsa
-from hash_algorithm import simple_hash  # custom_hash орнына simple_hash
+from hash_algorithm import simple_hash  
 
 class Transaction:
     def __init__(self, sender, receiver, amount, fee, private_key):
@@ -13,7 +13,7 @@ class Transaction:
     def calculate_hash(self):
         """ Транзакция деректерінен хэш есептеу """
         data = f"{self.sender}{self.receiver}{self.amount}{self.fee}"
-        return simple_hash(data)  # custom_hash орнына simple_hash
+        return simple_hash(data)  
 
     def sign_transaction(self, private_key):
         """ Транзакцияны жеке кілт арқылы қол қою """
