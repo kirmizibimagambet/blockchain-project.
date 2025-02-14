@@ -10,6 +10,9 @@ class Transaction:
         self.tx_hash = self.calculate_hash()
         self.signature = self.sign_transaction(private_key)
 
+    def __str__(self):
+        return f"{self.sender[:6]} -> {self.receiver[:6]} | {self.amount} BTC + {self.fee} fee"
+
     def calculate_hash(self):
         """ Транзакция деректерінен хэш есептеу """
         data = f"{self.sender}{self.receiver}{self.amount}{self.fee}"
