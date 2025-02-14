@@ -4,7 +4,7 @@ from transaction import Transaction
 from wallet import Wallet
 
 class Node:
-    def _init_(self, name):
+    def __init__(self, name):
         self.name = name
         self.blockchain = Blockchain()
         self.peers = []
@@ -45,31 +45,31 @@ class Node:
 
 
 
-# *Түйіндер құру*
+# **Түйіндер құру**
 node1 = Node("Node 1")  # Блок жасаушы түйін
 node2 = Node("Node 2")
 node3 = Node("Node 3")
 
-# *Түйіндерді байланыстыру*
+# **Түйіндерді байланыстыру**
 node1.add_peer(node2)
 node1.add_peer(node3)
 
-# *Әмияндар*
+# **Әмияндар**
 wallet1 = Wallet()
 wallet2 = Wallet()
 
-# *Транзакциялар жасау*
+# **Транзакциялар жасау**
 transaction1 = Transaction(wallet1.get_address(), wallet2.get_address(), 50, 2, wallet1.private_key)
 transaction2 = Transaction(wallet2.get_address(), wallet1.get_address(), 30, 1, wallet2.private_key)
 
-# *Node 1 жаңа блок жасайды*
+# **Node 1 жаңа блок жасайды**
 node1.create_block([transaction1, transaction2])
 
-# *Node 2 және Node 3 жаңа блокты қабылдайды*
+# **Node 2 және Node 3 жаңа блокты қабылдайды**
 node2.receive_block(node1.blockchain.chain[-1])
 node3.receive_block(node1.blockchain.chain[-1])
 
-# *Блокчейндерді тексеру*
+# **Блокчейндерді тексеру**
 print(f"Node 1 Blockchain Valid: {node1.blockchain.is_chain_valid()}")
 print(f"Node 2 Blockchain Valid: {node2.blockchain.is_chain_valid()}")
 print(f"Node 3 Blockchain Valid: {node3.blockchain.is_chain_valid()}")
