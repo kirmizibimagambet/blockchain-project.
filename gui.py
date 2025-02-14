@@ -42,7 +42,7 @@ class WalletApp:
 
         self.update_explorer()
 
-        def update_explorer(self):
+    def update_explorer(self):
         """ Блоктар тізімін жаңарту """
         self.blocks_listbox.delete(0, tk.END)
 
