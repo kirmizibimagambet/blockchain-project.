@@ -5,7 +5,7 @@ from merkle_tree import MerkleTree
 class Block:
     def __init__(self, index, previous_hash, transactions):
         self.index = index
-        self.timestamp = time.time()
+        self.timestamp = int(time.time()) # Уақытты бүтін санға айналдыру
         self.previous_hash = previous_hash
         self.transactions = transactions
         self.merkle_root = self.calculate_merkle_root()
