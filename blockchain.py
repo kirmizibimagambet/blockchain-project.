@@ -11,16 +11,16 @@ class Blockchain:
         return Block(0, "0", [])
 
     def add_block(self, transactions):
-        valid_transactions = []
-        for tx in transactions:
-            if self.utxo.process_transaction(tx) and tx.verify_signature(tx.sender):
-                valid_transactions.append(tx)
+        valid_transactions = [tx for tx in transactions if tx.verify_signature(tx.sender)]
 
         if valid_transactions:
             previous_block = self.chain[-1]
             new_block = Block(len(self.chain), previous_block.hash, valid_transactions)
             self.chain.append(new_block)
-
+            
+            for tx in valid_transactions:
+                self.utxo.process_transaction(tx)
+                
     def is_valid_merkle_root(self, block):
         tx_hashes = [tx.tx_hash for tx in block.transactions]
         merkle_tree = MerkleTree(tx_hashes)
@@ -41,7 +41,7 @@ class Blockchain:
                 return False
 
             for tx in current_block.transactions:
-                if not self.utxo.process_transaction(tx):
+                if not tx.verify_signature(tx.sender):
                     return False
 
         return True
