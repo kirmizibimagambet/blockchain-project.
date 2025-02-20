@@ -32,6 +32,19 @@ class Node:
             print(f"{self.name} жаңа блокты қабылдады: {block.hash[:10]}...")
         else:
             print(f"{self.name}: блок синхрондалмады! Қайта сұраныс жіберу керек.")
+            self.synchronize_blockchain()
+            
+    def synchronize_blockchain(self):
+        """Бүкіл блокчейнді ең ұзын тізбекке сәйкес жаңарту"""
+        longest_chain = self.blockchain.chain
+
+        for peer in self.peers:
+            if len(peer.blockchain.chain) > len(longest_chain):
+                longest_chain = peer.blockchain.chain
+
+        if longest_chain != self.blockchain.chain:
+            self.blockchain.chain = longest_chain.copy()
+            print(f"{self.name} блокчейнді синхрондады. Жаңа ұзындық: {len(self.blockchain.chain)}")
 
     def create_block(self, transactions):
         """Жаңа блок жасау және тарату"""
@@ -53,6 +66,10 @@ node3 = Node("Node 3")
 # **Түйіндерді байланыстыру**
 node1.add_peer(node2)
 node1.add_peer(node3)
+node2.add_peer(node1)
+node2.add_peer(node3)
+node3.add_peer(node1)
+node3.add_peer(node2)
 
 # **Әмияндар**
 wallet1 = Wallet()
@@ -65,9 +82,9 @@ transaction2 = Transaction(wallet2.get_address(), wallet1.get_address(), 30, 1, 
 # **Node 1 жаңа блок жасайды**
 node1.create_block([transaction1, transaction2])
 
-# **Node 2 және Node 3 жаңа блокты қабылдайды**
-node2.receive_block(node1.blockchain.chain[-1])
-node3.receive_block(node1.blockchain.chain[-1])
+# **Барлық түйіндер синхрондалады**
+node2.synchronize_blockchain()
+node3.synchronize_blockchain()
 
 # **Блокчейндерді тексеру**
 print(f"Node 1 Blockchain Valid: {node1.blockchain.is_chain_valid()}")
