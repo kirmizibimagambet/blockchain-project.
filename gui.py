@@ -40,6 +40,11 @@ class WalletApp:
         self.blocks_listbox.pack()
         self.blocks_listbox.bind("<<ListboxSelect>>", self.show_block_transactions)
 
+        #  Транзакциялар үшін листбокс қосу
+        self.tx_listbox = tk.Listbox(self.root, height=5, width=50)
+        self.tx_listbox.pack()
+
+
         self.update_explorer()
 
     def update_explorer(self):
@@ -48,7 +53,7 @@ class WalletApp:
 
         for block in self.blockchain.chain:
             transactions_str = ", ".join(
-                str(tx) for tx in block.transactions)  # ✅ Транзакцияларды оқуға ыңғайлы түрге айналдыру
+                str(tx) for tx in block.transactions)  # Транзакцияларды оқуға ыңғайлы түрге айналдыру
             print(f"Block {block.index}: Transactions -> {transactions_str}")
 
             self.blocks_listbox.insert(tk.END, f"Block {block.index} | Hash: {block.hash[:10]}...")
@@ -64,6 +69,7 @@ class WalletApp:
         self.tx_listbox.delete(0, tk.END)
         for tx in block.transactions:
             self.tx_listbox.insert(tk.END, f"{tx.sender[:10]} -> {tx.receiver[:10]} | {tx.amount}")
+
     
     def create_transaction(self):
         receiver = self.receiver_entry.get()
@@ -75,10 +81,14 @@ class WalletApp:
             return
 
         tx = Transaction(self.address, receiver, amount, fee, self.private_key)
+
         self.blockchain.add_block([tx])
+        print("Жаңа блок қосылды!")
 
         self.balance_label.config(text=f"Баланс: {self.blockchain.utxo.get_balance(self.address)}")
-        print("Транзакция жіберілді!")
+
+        #  Блок Эксплорер жаңарту
+        self.update_explorer()
 
 
 
