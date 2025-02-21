@@ -10,4 +10,4 @@ class Wallet:
 
     def get_address(self):
         """Пайдаланушы адресін қайтару (ашық кілттің хэші)"""
-        return self.public_key.save_pkcs1().hex()
+        return self.public_key.save_pkcs1(format='PEM').decode('utf-8')
