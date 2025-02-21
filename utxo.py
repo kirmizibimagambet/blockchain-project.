@@ -21,3 +21,10 @@ class UTXO:
 
     def get_balance(self, address):
         return self.utxos.get(address, 0)
+        
+    def update_balance(self, address, amount):
+        """ Обновление баланса для делегации и других операций """
+        if address not in self.utxos:
+            self.utxos[address] = 0
+        self.utxos[address] += amount
+        print(f"Баланс для {address} обновлен: {self.utxos[address]}")
