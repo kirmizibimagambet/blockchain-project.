@@ -1,7 +1,9 @@
 import tkinter as tk
 from blockchain import Blockchain
 from transaction import Transaction
+from validator import Validator
 import rsa
+import random
 
 class WalletApp:
     def __init__(self, root):
@@ -9,6 +11,7 @@ class WalletApp:
         self.root.title("Blockchain Wallet")
 
         self.blockchain = Blockchain()
+        self.validators = [Validator(f"validator_{i}", random.randint(1000, 5000)) for i in range(5)]
         self.public_key, self.private_key = rsa.newkeys(512)
         self.address = self.public_key.save_pkcs1().decode()
 
@@ -43,8 +46,25 @@ class WalletApp:
         #  Транзакциялар үшін листбокс қосу
         self.tx_listbox = tk.Listbox(self.root, height=5, width=50)
         self.tx_listbox.pack()
+        
+         # Стейкинг и делегация
+        self.stake_label = tk.Label(root, text="Стейкинг монет")
+        self.stake_label.pack()
 
+        self.stake_amount_entry = tk.Entry(root)
+        self.stake_amount_entry.pack()
+        self.stake_amount_entry.insert(0, "Сома для стейкинга")
 
+        self.delegate_button = tk.Button(root, text="Делегировать монеты", command=self.delegate_stake)
+        self.delegate_button.pack()
+
+        # Список валидаторов
+        self.validator_label = tk.Label(root, text="Валидаторы")
+        self.validator_label.pack()
+
+        self.validators_listbox = tk.Listbox(root, height=5, width=50)
+        self.validators_listbox.pack()
+        
         self.update_explorer()
 
     def update_explorer(self):
@@ -52,11 +72,14 @@ class WalletApp:
         self.blocks_listbox.delete(0, tk.END)
 
         for block in self.blockchain.chain:
-            transactions_str = ", ".join(
-                str(tx) for tx in block.transactions)  # Транзакцияларды оқуға ыңғайлы түрге айналдыру
-            print(f"Block {block.index}: Transactions -> {transactions_str}")
-
+            transactions_str = ", ".join(str(tx) for tx in block.transactions)
             self.blocks_listbox.insert(tk.END, f"Block {block.index} | Hash: {block.hash[:10]}...")
+
+        # Обновление списка валидаторов
+        self.validators_listbox.delete(0, tk.END)
+        for validator in self.validators:
+            self.validators_listbox.insert(tk.END,
+                                           f"Validator {validator.address[:10]} | Stake: {validator.get_stake()}")
 
     def show_block_transactions(self, event):
         selected_index = self.blocks_listbox.curselection()
@@ -88,6 +111,41 @@ class WalletApp:
         self.balance_label.config(text=f"Баланс: {self.blockchain.utxo.get_balance(self.address)}")
 
         #  Блок Эксплорер жаңарту
+        self.update_explorer()
+        
+         # Метод для делегирования стейка с учетом комиссии и вознаграждения
+    def delegate_stake(self):
+        """ Делегирование монет валидатору """
+        amount = float(self.stake_amount_entry.get())  # Стейк, который мы делегируем
+        fee = float(self.fee_entry.get())  # Комиссия
+
+        # Проверяем, достаточно ли средств на балансе
+        if self.blockchain.utxo.get_balance(self.address) < amount + fee:
+            print("Қателік: Баланс жеткіліксіз!")
+            return
+
+        # Выбираем валидатора для делегации
+        selected_index = self.validators_listbox.curselection()
+        if not selected_index:
+            print("Қателік: Валидатор таңдалмаған!")
+            return
+
+        validator_index = selected_index[0]
+        validator = self.validators[validator_index]
+
+        # Обновляем баланс для отправителя
+        self.blockchain.utxo.update_balance(self.address, -(amount + fee))  # Уменьшаем баланс отправителя
+        self.blockchain.utxo.update_balance(validator.address, amount)  # Увеличиваем баланс валидатора
+
+        # Рассчитываем 5% от стейка и добавляем его как вознаграждение валидатору
+        reward = amount * 0.05  # 5% от суммы стейка
+        self.blockchain.utxo.update_balance(validator.address, reward)  # Вознаграждение валидатору
+
+        # Обновляем интерфейс (баланс)
+        self.balance_label.config(text=f"Баланс: {self.blockchain.utxo.get_balance(self.address)}")
+        print(f"Монеты делегированы валидатору {validator.address[:10]} с вознаграждением {reward}!")
+
+        # Обновляем блоки в интерфейсе
         self.update_explorer()
 
 
