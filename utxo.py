@@ -17,6 +17,7 @@ class UTXO:
 
         self.utxos[sender] -= (amount + fee)
         self.utxos[receiver] = self.utxos.get(receiver, 0) + amount
+        print(f"Транзакция успешна: {sender} отправил {amount} на {receiver}. Баланс {sender}: {self.utxos[sender]}")
         return True
 
     def get_balance(self, address):
